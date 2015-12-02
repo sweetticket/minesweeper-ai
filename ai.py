@@ -44,8 +44,22 @@ def countFlagsAround(grid, i, j):
     return mines;
 
 """ Counts the number of unopened squares around a given position. """
-def countFreeSquareAround(grid, rowno, colno):
-	pass
+def countUnopenedAround(grid, i, j):
+	freeSquares = 0
+	if grid[i-1][j] == ' ':
+		freeSquares += 1
+	if grid[i+1][j] == ' ':
+		freeSquares += 1
+	if grid[i][j-1] == ' ':
+		freeSquares += 1
+	if grid[i][j+1] == ' ':
+		freeSquares += 1
+	if grid[i+1][j+1] == ' ':
+		freeSquares += 1
+	if grid[i-1][j-1] == ' ':
+		freeSquares += 1
+
+    return freeSquares
 
 """ A boundry square is an unopened square with opened squares near it. """
 def isBoundary(grid, rowno, colno):
