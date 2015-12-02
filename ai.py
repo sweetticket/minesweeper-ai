@@ -2,8 +2,14 @@ import random
 import re
 import time
 from string import ascii_lowercase
-from minesweeper import *
 import math
+
+def getrandomcell(grid):
+    gridsize = len(grid)
+    a = random.randint(0, gridsize - 1)
+    b = random.randint(0, gridsize - 1)
+    return (a, b)
+
 
 """ Counts the number of flags around a given position.
 	row i, col j """
@@ -41,8 +47,7 @@ def countFlagsAround(currgrid, flags, i, j):
 		mines += 1
 	if not oD and not oR and (i+1, j+1) in flags:
 		mines += 1
-
-    return mines;
+	return mines
 
 """ Counts the number of unopened squares around a given position. """
 def getUnopenedAround(currgrid, i, j):
@@ -59,13 +64,13 @@ def getUnopenedAround(currgrid, i, j):
 		freeSquares.append((i+1, j+1))
 	if currgrid[i-1][j-1] == ' ':
 		freeSquares.append((i-1, j-1))
-
-    return freeSquares
+	return freeSquares
 
 """ A boundry square is an unopened square with opened squares near it. """
 def isBoundary(currgrid, i, j):
 	gridsize = len(grid)
-	if grid[i][j] != ' ' return False
+	if grid[i][j] != ' ':
+		return False
 
 	oU = False
 	oD = False
@@ -101,7 +106,7 @@ def isBoundary(currgrid, i, j):
 
 """ Attempt to deduce squares that we know have mines
   	More specifically if number of squares around it = its number. """
-def attemptFlagMine(currgrid, rowno, colno):
+def attemptFlagMine(currgrid):
 	for i in range(len(currgrid)):
 		for j in range(len(currgrid)):
 			if isinstance( currgrid[i][j], int) and currgrid[i][j] >= 1:
@@ -111,7 +116,8 @@ def attemptFlagMine(currgrid, rowno, colno):
 						for jj in range(len(currgrid)):
 							if math.abs(ii-i) <= 1 and math.abs(jj-j) <= 1:
 								if currgrid[ii][jj] == ' ':
-									return {'cell': (ii, jj), 'flag': True, 'message': ""}
+									return [{'cell': (ii, jj), 'flag': True, 'message': ""}]
+	return False
 
 """ Attempt to deduce a spot that should be free and click it
   	More specifically:
@@ -131,11 +137,11 @@ def attemptMove(currgrid, flags):
 						for cell in unopenedAround:
 							moves.append({'cell': cell, 'flag': False, 'message': ""})
 							return moves
-	guessRandomly()
+	return guessRandomly(currgrid)
 	# tankSolver()
 
 def guessRandomly(currgrid):
 	while True:
 		(rowno, colno) = getrandomcell(currgrid)
 		if currgrid[rowno][colno] == ' ':
-			return {'cell': (rowno, colno), 'flag': False, 'message': ""}
+			return [{'cell': (rowno, colno), 'flag': False, 'message': ""}]
