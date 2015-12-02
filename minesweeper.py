@@ -8,7 +8,7 @@ from string import ascii_lowercase
 HUMAN = 0
 AI = 1
 
-gridsize = 9
+gridsize = 7
 numberofmines = 10
 
 helpmessage = ("Type the column followed by the row (eg. a5). "
@@ -157,7 +157,6 @@ def parseinput(inputstring, gridsize, helpmessage):
 def respond_to_move(currgrid, grid, flags, starttime, mines, result):
     message = result['message']
     cell = result['cell']
-    newgame = False
 
     if cell:
         print('\n\n')
@@ -190,9 +189,7 @@ def respond_to_move(currgrid, grid, flags, starttime, mines, result):
             print('Game Over\n')
             showgrid(grid)
             print('Your Score: ' + str(calcScore(mines, flags)) + '\n')
-            if playagain():
-                newgame = True
-            return (currgrid, grid, flags, starttime, mines, newgame)
+            return (currgrid, grid, flags, starttime, mines, True)
 
         elif currcell == ' ':
             showcells(grid, currgrid, rowno, colno)
@@ -207,13 +204,11 @@ def respond_to_move(currgrid, grid, flags, starttime, mines, result):
                 'It took you {} minutes and {} seconds.\n'.format(minutes,
                                                                   seconds))
             showgrid(grid)
-            if playagain():
-                newgame = True
-            return (currgrid, grid, flags, starttime, mines, newgame)
+            return (currgrid, grid, flags, starttime, mines, True)
 
     showgrid(currgrid)
     print(message)
-    return (currgrid, grid, flags, starttime, mines, newgame)
+    return (currgrid, grid, flags, starttime, mines, False)
 
 
 def playgame(mode):
@@ -224,6 +219,7 @@ def playgame(mode):
     flags = []
     mines = []
     starttime = 0
+    newgame = False
 
     showgrid(currgrid)
     print(helpmessage + " Type 'help' to show this message again.\n")
@@ -241,7 +237,11 @@ def playgame(mode):
         for result in results:
             (currgrid, grid, flags, starttime, mines, newgame) = respond_to_move(currgrid, grid, flags, starttime, mines, result) 
             if newgame:
-                playgame(mode)        
+                break
+        if newgame:
+            break
+    if playagain():
+        playgame(mode)      
 
 # playgame(HUMAN)
 playgame(AI)
