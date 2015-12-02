@@ -141,6 +141,7 @@ def attemptMove(currgrid, flags):
 	# tankSolver()
 
 def guessRandomly(currgrid):
+	print "guessing"
 	while True:
 		(rowno, colno) = getrandomcell(currgrid)
 		if currgrid[rowno][colno] == ' ':

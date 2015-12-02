@@ -4,6 +4,13 @@ import Queue
  solve any conceivable position! """
 
 BF_LIMIT = 8 # ???
+tank_board = None
+knownMine = None
+knownEmpty = None
+tank_solutions = [] # array of arrays of bools
+#  Should be true -- if false, we're bruteforcing the endgame
+borderOptimization = False
+
 
 def tileSearch(currgrid, ci, cj, ti, tj):
   for i in range(len(currgrid)):
@@ -59,16 +66,16 @@ def tankSolver(currgrid, flags):
     # Copy everything into temporary constructs
     tank_solutions = [] # array of bools
     tank_board = currgrid[:]
-    knownMines = flags[:]
+    knownMine = flags[:]
 
     knownEmpty = [[False]*len(currgrid)]*len(currgrid)
     for i in range(len(currgrid)):
       for j in range(len(currgrid)):
-        if isInstance(tank_board[i][j], int) and isInstance >= 0:
+        if isInstance(tank_board[i][j], int) and tank_board[i][j] >= 0:
           knownEmpty[i][j] = True
 
     # Compute solutions -- here's the time consuming step
-    tankRecurse(segregated.get(s), 0)
+    tankRecurse(currgrid, segregated.get(s), 0)
 
     # Something screwed up
     if tank_solutions.size() == 0:
@@ -175,20 +182,38 @@ def tankSegregate(borderTiles):
 
   return allRegions
 
+
+""" Recurse from depth k (0 is root)
+Assumes the tank variables are already set; puts solutions in
+the static arraylist. """
+def tankRecurse(currgrid, borderTiles, k):
+  # Return if at this point, it's already inconsistent
+  flagCount = 0
+  for i in range(len(currgrid)):
+    for j in range(len(currgrid)):
+      # Count flags for endgame cases
+      if (i, j) in knownMine:
+        flagCount += 1
+
+      num = tank_board[i][j]
+      if num != ' ':
+        break
+
+      # Total bordering squares
+      surround = 0
+      if (i == 0 and j == 0) or (i == len(currgrid)-1 and j == len(currgrid)-1):
+        surround = 3
+      else if i == 0 or j == 0 or i == len(currgrid)-1 or j == len(currgrid)-1:
+        surround = 5
+      else:
+        surround = 8
+
+      numFlags = countFlagsAround(tank_board, knownMine, i, j)
+      numFree = len(getUnopenedAround(tank_board, i, j)) # use knownEmpty instead of tank_board?
+
 ###
 
-  static int[][] tank_board = null;
-  static boolean[][] knownMine = null;
-  static boolean[][] knownEmpty = null;
-  static ArrayList<boolean[]> tank_solutions;
-  
-  // Should be true -- if false, we're bruteforcing the endgame
-  static boolean borderOptimization;
-  static int BF_LIMIT = 8;
 
-  // Recurse from depth k (0 is root)
-  // Assumes the tank variables are already set; puts solutions in
-  // the static arraylist.
   static void tankRecurse(ArrayList<Pair> borderTiles, int k){
 
     // Return if at this point, it's already inconsistent
@@ -196,14 +221,6 @@ def tankSegregate(borderTiles):
     for(int i=0; i<BoardHeight; i++)
       for(int j=0; j<BoardWidth; j++){
 
-        // Count flags for endgame cases
-        if(knownMine[i][j])
-          flagCount++;
-
-        int num = tank_board[i][j];
-        if(num < 0) continue;
-
-        // Total bordering squares
         int surround = 0;
         if((i==0&&j==0) || (i==BoardHeight-1 && j==BoardWidth-1))
           surround = 3;

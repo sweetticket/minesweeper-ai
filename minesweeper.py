@@ -8,6 +8,20 @@ from string import ascii_lowercase
 HUMAN = 0
 AI = 1
 
+gridsize = 9
+numberofmines = 10
+
+helpmessage = ("Type the column followed by the row (eg. a5). "
+               "To put or remove a flag, add 'f' to the cell (eg. a5f).")
+
+def calcScore(mines, flags):
+    score = 0
+    for i in mines:
+        for j in flags:
+            if i == j:
+                score += 1
+    return score
+
 def setupgrid(gridsize, start, numberofmines):
     emptygrid = [['0' for i in range(gridsize)] for i in range(gridsize)]
 
@@ -140,9 +154,10 @@ def parseinput(inputstring, gridsize, helpmessage):
 
     return {'cell': cell, 'flag': flag, 'message': message}
 
-def respond_to_move(currgrid, flags, numberofmines, gridsize, result):
+def respond_to_move(currgrid, grid, flags, starttime, mines, result):
     message = result['message']
     cell = result['cell']
+    newgame = False
 
     if cell:
         print('\n\n')
@@ -174,9 +189,10 @@ def respond_to_move(currgrid, flags, numberofmines, gridsize, result):
         elif grid[rowno][colno] == 'X':
             print('Game Over\n')
             showgrid(grid)
+            print('Your Score: ' + str(calcScore(mines, flags)) + '\n')
             if playagain():
-                playgame(mode)
-            return
+                newgame = True
+            return (currgrid, grid, flags, starttime, mines, newgame)
 
         elif currcell == ' ':
             showcells(grid, currgrid, rowno, colno)
@@ -192,25 +208,22 @@ def respond_to_move(currgrid, flags, numberofmines, gridsize, result):
                                                                   seconds))
             showgrid(grid)
             if playagain():
-                playgame(mode)
-            return
+                newgame = True
+            return (currgrid, grid, flags, starttime, mines, newgame)
 
     showgrid(currgrid)
-    print(message) 
+    print(message)
+    return (currgrid, grid, flags, starttime, mines, newgame)
 
 
 def playgame(mode):
-    gridsize = 9
-    numberofmines = 10
 
     currgrid = [[' ' for i in range(gridsize)] for i in range(gridsize)]
 
     grid = []
     flags = []
+    mines = []
     starttime = 0
-
-    helpmessage = ("Type the column followed by the row (eg. a5). "
-                   "To put or remove a flag, add 'f' to the cell (eg. a5f).")
 
     showgrid(currgrid)
     print(helpmessage + " Type 'help' to show this message again.\n")
@@ -226,7 +239,9 @@ def playgame(mode):
                 results = ai.attemptMove(currgrid, flags)
 
         for result in results:
-            respond_to_move(currgrid, flags, numberofmines, gridsize, result)         
+            (currgrid, grid, flags, starttime, mines, newgame) = respond_to_move(currgrid, grid, flags, starttime, mines, result) 
+            if newgame:
+                playgame(mode)        
 
 # playgame(HUMAN)
 playgame(AI)
