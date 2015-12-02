@@ -45,20 +45,20 @@ def countFlagsAround(currgrid, flags, i, j):
     return mines;
 
 """ Counts the number of unopened squares around a given position. """
-def countUnopenedAround(currgrid, i, j):
-	freeSquares = 0
+def getUnopenedAround(currgrid, i, j):
+	freeSquares = []
 	if currgrid[i-1][j] == ' ':
-		freeSquares += 1
+		freeSquares.append((i-1, j))
 	if currgrid[i+1][j] == ' ':
-		freeSquares += 1
+		freeSquares.append((i+1, j))
 	if currgrid[i][j-1] == ' ':
-		freeSquares += 1
+		freeSquares.append((i, j-1))
 	if currgrid[i][j+1] == ' ':
-		freeSquares += 1
+		freeSquares.append((i, j+1))
 	if currgrid[i+1][j+1] == ' ':
-		freeSquares += 1
+		freeSquares.append((i+1, j+1))
 	if currgrid[i-1][j-1] == ' ':
-		freeSquares += 1
+		freeSquares.append((i-1, j-1))
 
     return freeSquares
 
@@ -101,23 +101,38 @@ def isBoundary(currgrid, i, j):
 
 """ Attempt to deduce squares that we know have mines
   	More specifically if number of squares around it = its number. """
-def attemptFlagMine(currgrid, flags, rowno, colno):
-	for i in range(currgrid(len)):
-		for j in range(currgrid(len)):
-			if currgrid[i][j] >= 1:
-				if currgrid[i][j] == countUnopenedAround(currgrid, i, j):
-					for ii in range(currgrid(len)):
-						for jj in range(currgrid(len)):
+def attemptFlagMine(currgrid, rowno, colno):
+	for i in range(len(currgrid)):
+		for j in range(len(currgrid)):
+			if isinstance( currgrid[i][j], int) and currgrid[i][j] >= 1:
+				unopened = getUnopenedAround(currgrid, i, j)
+				if currgrid[i][j] == len(unopened):
+					for ii in range(len(currgrid)):
+						for jj in range(len(currgrid)):
 							if math.abs(ii-i) <= 1 and math.abs(jj-j) <= 1:
 								if currgrid[ii][jj] == ' ':
-									flags.append((ii, jj))
+									return {'cell': (ii, jj), 'flag': True, 'message': ""}
 
 """ Attempt to deduce a spot that should be free and click it
   	More specifically:
   	Find a square where the number of flags around it is the same as it
   	Then click every empty square around it. """
-def attemptMove(currgrid):
-	pass
+def attemptMove(currgrid, flags):
+	for i in range(len(currgrid)):
+		for j in range(len(currgrid)):
+			if isinstance(currgrid[i][j], int) and currgrid[i][j] >= 1:
+				curNum = currgrid[i][j]
+				minesAround = countFlagsAround(currgrid, flags, i, j)
+				unopenedAround = getUnopenedAround(currgrid, i, j)
+				if curNum == minesAround and len(unopenedAround) > minesAround:
+					success = True
+					if len(unopenedAround) - minesAround > 1:
+						moves = []
+						for cell in unopenedAround:
+							moves.append({'cell': cell, 'flag': False, 'message': ""})
+							return moves
+	guessRandomly()
+	# tankSolver()
 
 def guessRandomly(currgrid):
 	while True:
