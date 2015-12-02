@@ -62,8 +62,41 @@ def countUnopenedAround(grid, i, j):
     return freeSquares
 
 """ A boundry square is an unopened square with opened squares near it. """
-def isBoundary(grid, rowno, colno):
-	pass
+def isBoundary(grid, i, j):
+	gridsize = len(grid)
+	if grid[i][j] != ' ' return False
+
+	oU = False
+	oD = False
+	oL = False
+	oR = False
+
+	if i == 0:
+		oU = True
+	if j == 0:
+		oL = True
+	if i == gridsize-1:
+		oD = True
+	if j == gridsize-1:
+		oR = True
+
+	if not oU and grid[i-1][j] != ' ':
+		return True
+	if not oL and grid[i][j-1] != ' ':
+		return True
+	if not oD and grid[i+1][j] != ' ':
+		return True
+	if not oR and grid[i][j+1] != ' ':
+		return True
+
+	if not oU and not oL and grid[i-1][j-1] != ' ':
+		return True
+	if not oU and not oR and grid[i-1][j+1] != ' ':
+		return True
+	if not oD and grid[i+1][j-1] != ' ':
+		return True
+	if not oD and grid[i+1][j+1] != ' ':
+		return True
 
 """ Attempt to deduce squares that we know have mines
   	More specifically if number of squares around it = its number. """
