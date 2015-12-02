@@ -109,7 +109,7 @@ def isBoundary(currgrid, i, j):
 def attemptFlagMine(currgrid):
 	for i in range(len(currgrid)):
 		for j in range(len(currgrid)):
-			if isinstance( currgrid[i][j], int) and currgrid[i][j] >= 1:
+			if isinstance(currgrid[i][j], int) and currgrid[i][j] >= 1:
 				unopened = getUnopenedAround(currgrid, i, j)
 				if currgrid[i][j] == len(unopened):
 					for ii in range(len(currgrid)):

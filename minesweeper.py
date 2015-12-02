@@ -140,6 +140,64 @@ def parseinput(inputstring, gridsize, helpmessage):
 
     return {'cell': cell, 'flag': flag, 'message': message}
 
+def respond_to_move(currgrid, flags, numberofmines, gridsize, result):
+    message = result['message']
+    cell = result['cell']
+
+    if cell:
+        print('\n\n')
+        rowno, colno = cell
+        currcell = currgrid[rowno][colno]
+        flag = result['flag']
+
+        if not grid:
+            grid, mines = setupgrid(gridsize, cell, numberofmines)
+        if not starttime:
+            starttime = time.time()
+
+        if flag:
+            # Add a flag if the cell is empty
+            if currcell == ' ':
+                currgrid[rowno][colno] = 'F'
+                flags.append(cell)
+            # Remove the flag if there is one
+            elif currcell == 'F':
+                currgrid[rowno][colno] = ' '
+                flags.remove(cell)
+            else:
+                message = 'Cannot put a flag there'
+
+        # If there is a flag there, show a message
+        elif cell in flags:
+            message = 'There is a flag there'
+
+        elif grid[rowno][colno] == 'X':
+            print('Game Over\n')
+            showgrid(grid)
+            if playagain():
+                playgame(mode)
+            return
+
+        elif currcell == ' ':
+            showcells(grid, currgrid, rowno, colno)
+
+        else:
+            message = "That cell is already shown"
+
+        if set(flags) == set(mines):
+            minutes, seconds = divmod(int(time.time() - starttime), 60)
+            print(
+                'You Win. '
+                'It took you {} minutes and {} seconds.\n'.format(minutes,
+                                                                  seconds))
+            showgrid(grid)
+            if playagain():
+                playgame(mode)
+            return
+
+    showgrid(currgrid)
+    print(message) 
+
 
 def playgame(mode):
     gridsize = 9
@@ -168,63 +226,7 @@ def playgame(mode):
                 results = ai.attemptMove(currgrid, flags)
 
         for result in results:
-
-            message = result['message']
-            cell = result['cell']
-
-            if cell:
-                print('\n\n')
-                rowno, colno = cell
-                currcell = currgrid[rowno][colno]
-                flag = result['flag']
-
-                if not grid:
-                    grid, mines = setupgrid(gridsize, cell, numberofmines)
-                if not starttime:
-                    starttime = time.time()
-
-                if flag:
-                    # Add a flag if the cell is empty
-                    if currcell == ' ':
-                        currgrid[rowno][colno] = 'F'
-                        flags.append(cell)
-                    # Remove the flag if there is one
-                    elif currcell == 'F':
-                        currgrid[rowno][colno] = ' '
-                        flags.remove(cell)
-                    else:
-                        message = 'Cannot put a flag there'
-
-                # If there is a flag there, show a message
-                elif cell in flags:
-                    message = 'There is a flag there'
-
-                elif grid[rowno][colno] == 'X':
-                    print('Game Over\n')
-                    showgrid(grid)
-                    if playagain():
-                        playgame(mode)
-                    return
-
-                elif currcell == ' ':
-                    showcells(grid, currgrid, rowno, colno)
-
-                else:
-                    message = "That cell is already shown"
-
-                if set(flags) == set(mines):
-                    minutes, seconds = divmod(int(time.time() - starttime), 60)
-                    print(
-                        'You Win. '
-                        'It took you {} minutes and {} seconds.\n'.format(minutes,
-                                                                          seconds))
-                    showgrid(grid)
-                    if playagain():
-                        playgame(mode)
-                    return
-
-            showgrid(currgrid)
-            print(message)          
+            respond_to_move(currgrid, flags, numberofmines, gridsize, result)         
 
 # playgame(HUMAN)
 playgame(AI)
