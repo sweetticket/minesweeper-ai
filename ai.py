@@ -3,6 +3,9 @@ import re
 import time
 from string import ascii_lowercase
 import math
+from game_constants import *
+
+BF_LIMIT = 8
 
 def getrandomcell(grid):
     gridsize = len(grid)
@@ -161,6 +164,13 @@ def getBorderTiles(currgrid, flags):
         		borderTiles.append((i, j))
  	return borderTiles
 
+ def getAllUnopenedTiles(currgrid):
+ 	allUnopenedTiles = []
+ 	for i in range(len(currgrid)):
+    	for j in range(len(currgrid)):
+      		if currgrid[i][j] == ' ':
+        		allUnopenedTiles.append((i, j))
+
 def tileSearch(currgrid, (ci, cj), (ti, tj)):
   for i in range(len(currgrid)):
     for j in range(len(currgrid)):
@@ -201,6 +211,144 @@ def tankSegregate(borderTiles):
 
 	return allRegions
 
+def getKnownEmptyTiles(currgrid):
+	knownEmpty = []
+	for i in range(len(currgrid)):
+      for j in range(len(currgrid)):
+        if isInstance(tank_board[i][j], int) and tank_board[i][j] >= 0:
+          knownEmpty.append((i, j))
+    return knownEmpty
+
+def tankRecurse(currgrid, borderTiles, k, knownEmpty, knownMines, tank_board):
+	flagCount = 0
+	for i in range(len(tank_board)):
+		for j in range(len(tank_board)):
+			# Count flags for endgame cases
+			if (i, j) in knownMines:
+				flagCount += 1
+			num = tank_board[i][j]
+
+			if isInstance(num, int):			
+				surround = 0 # number of surrounding tiles
+				if (i == 0 and j == 0) or (i == len(tank_board)-1 and j == len(tank_board)-1):
+					surround = 3
+				else if i == 0 or j == 0 or i == len(tank_board)-1 or j == len(tank_board)-1:
+					surround = 5
+				else:
+					surround = 8
+				numFlags = countFlagsAround(tank_board, knownMines, i, j)
+				numFree = len(getUnopenedAround(tank_board, i, j))
+
+				# Scenario 1: too many mines
+				if numFlags > num:
+					return (tank_solutions, knownMines, knownEmpty)
+
+				# Scenario 2: too many empty
+				if surround - numFree < num:
+					return (tank_solutions, knownMines, knownEmpty)
+
+	if flagCount > numberofmines:
+		return (tank_solutions, knownMines, knownEmpty)
+
+	if k == len(borderTiles):
+		if not borderOptimization and flagCount < numberofmines:
+			return (tank_solutions, knownMines, knownEmpty)
+		
+		solution = [] # array of possible mine locations
+		for i in range(len(borderTiles)):
+			(si, sj) = borderTiles[i]
+			if (si, sj) in knownMines:
+				solution.append((si, sj))
+		tank_solutions.append(solution)
+		return (tank_solutions, knownMines, knownEmpty)
+
+	(qi, qj) = borderTiles[k]
+
+	# Recurse two positions: mine and no mine
+	knownMines.append((qi, qj))
+	(tank_solutions, knownMines, knownEmpty) = tankRecurse(currgrid, borderTiles, k+1, knownEmpty, knownMines, tank_board)
+	knownMines.remove((qi, qj))
+
+	knownEmpty.append((qi, qj))
+	(tank_solutions, knownMines, knownEmpty) = tankRecurse(currgrid, borderTiles, k+1, knownEmpty, knownMines, tank_board)
+	knownEmpty.remove((qi, qj))
+
 def tankSolver(currgrid, flags):
-	pass
+	borderTiles = getBorderTiles(currgrid, flags)
+	allUnopenedTiles = getAllUnopenedTiles(currgrid)
+	
+	# Count how many squares outside the knowable range
+	numOutSquares = len(allUnopenedTiles) - len(borderTiles)
+	if numOutSquares > BF_LIMIT:
+		borderOptimization = True
+	else:
+		borderTiles = allUnopenedTiles
+
+	# Something went wrong
+	if len(borderTiles) == 0:
+		print "Error: len(borderTiles) == 0"
+		return []
+
+	# Run the segregation routine before recursing one by one
+ 	# Don't bother if it's endgame as doing so might make it miss some cases
+ 	segregated = [] # array of arrays
+ 	if not borderOptimization:
+ 		segregated.append(borderTiles)
+ 	else:
+ 		segregated = tankSolver(borderTiles)
+
+ 	prob_best = 0
+ 	prob_besttile = -1
+ 	prob_best_s = -1
+
+ 	for s in range(len(segregated)):
+ 		tank_solutions = []
+ 		tank_board = currgrid[:]
+ 		knownMines = flags[:]
+ 		knownEmpty = getKnownEmptyTiles(tank_board)
+
+ 		# Compute solutions
+ 		(tank_solutions, knownMines, knownEmpty)  = tankRecurse(currgrid, segregated[s], 0, knownEmpty, knownMines, tank_board)
+
+ 		# In case something went wrong
+ 		if len(tank_solutions) == 0:
+ 			print "Error: len(tank_solutions) == 0"
+ 			return []
+
+ 		# Check for solved squares
+ 		for i in range(len(segregated[s])):
+ 			allMine = True
+ 			allEmpty = True
+ 			for sln in tank_solutions:
+ 				if segregated[s][i] in sln:
+ 					allEmpty = False
+ 				if segregated[s][i] not in sln:
+ 					allMine = False
+
+ 			(qi, qj) = segregated[s][i]
+ 			if allMine:
+ 				return [{'cell': (qi, qj), 'flag': True, 'message': ""}]
+ 			if allEmpty:
+ 				return [{'cell': (qi, qj), 'flag': False, 'message': ""}]
+
+ 			# Calculate probabilities, in case we need it
+ 			maxEmpty = -100000
+ 			iEmpty = -1
+
+ 			for i in range(len(segregated[s])):
+ 				nEmpty = 0
+ 				for sln in tank_solutions:
+ 					if segregated[s][i] not in sln:
+ 						nEmpty += 1
+ 					if nEmpty > maxEmpty:
+ 						maxEmpty = nEmpty
+ 						iEmpty = i
+ 				probability = float(maxEmpty) / len(tank_solutions)
+ 				if probability > prob_best:
+ 					prob_besttile = iEmpty
+ 					prob_best_s = s
+
+ 			# todo: bruteforce... extend BF_LIMIT
+ 			cell = segregated[prob_best_s][prob_besttile]
+ 			return [{'cell': cell, 'flag': False, 'message': ""}]
 

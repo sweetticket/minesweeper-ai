@@ -4,12 +4,7 @@ import re
 import time
 import ai
 from string import ascii_lowercase
-
-HUMAN = 0
-AI = 1
-
-gridsize = 9
-numberofmines = 10
+from game_constants import *
 
 helpmessage = ("Type the column followed by the row (eg. a5). "
                "To put or remove a flag, add 'f' to the cell (eg. a5f).")

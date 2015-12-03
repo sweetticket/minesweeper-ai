@@ -64,7 +64,7 @@ def tankSolver(currgrid, flags):
 
   for s in range(len(segregated)):
     # Copy everything into temporary constructs
-    tank_solutions = [] # array of bools
+    tank_solutions = [] # array of arrays of bools
     tank_board = currgrid[:]
     knownMine = flags[:]
 
@@ -196,7 +196,7 @@ def tankRecurse(currgrid, borderTiles, k):
         flagCount += 1
 
       num = tank_board[i][j]
-      if num != ' ':
+      if num == ' ':
         break
 
       # Total bordering squares
@@ -211,67 +211,37 @@ def tankRecurse(currgrid, borderTiles, k):
       numFlags = countFlagsAround(tank_board, knownMine, i, j)
       numFree = len(getUnopenedAround(tank_board, i, j)) # use knownEmpty instead of tank_board?
 
-###
+      # Scenario 1: too many mines
+      if numFlags > num:
+        return
 
+      # Scenario 2: too many empty
+      if surround - numFree < num:
+        return
 
-  static void tankRecurse(ArrayList<Pair> borderTiles, int k){
+  if flagCount > TOT_MINES:
+    return
 
-    // Return if at this point, it's already inconsistent
-    int flagCount = 0;
-    for(int i=0; i<BoardHeight; i++)
-      for(int j=0; j<BoardWidth; j++){
+  # solution found!
+  if k == len(borderTiles):
+    # we don't have the exact min count, so no
+    if not borderOptimization and flagCount < TOT_MINES:
+      return
 
-        int surround = 0;
-        if((i==0&&j==0) || (i==BoardHeight-1 && j==BoardWidth-1))
-          surround = 3;
-        else if(i==0 || j==0 || i==BoardHeight-1 || j==BoardWidth-1)
-          surround = 5;
-        else surround = 8;
+    solution = [] # array of bools, length len(borderTiles)
+    for i in range(len(borderTiles)):
+      (si, sj) = borderTiles[i]
+      solution[i] = knownMine[si][sj]
+    tank_solutions.append(solution)
+    return
 
-        int numFlags = countFlagsAround(knownMine, i,j);
-        int numFree = countFlagsAround(knownEmpty, i,j);
-        
-        // Scenario 1: too many mines
-        if(numFlags > num) return;
+  (qi, qj) = borderTiles[k]
 
-        // Scenario 2: too many empty
-        if(surround - numFree < num) return;
-      }
+  # Recurse two positions: mine and no mine
+  knownMine[qi][qj] = True
+  tankRecurse(borderTiles, k+1)
+  knownMine[qi][qj] = False
 
-    // We have too many flags
-    if(flagCount > TOT_MINES)
-      return;
-
-
-    // Solution found!
-    if(k == borderTiles.size()){
-
-      // We don't have the exact mine count, so no
-      if(!borderOptimization && flagCount < TOT_MINES)
-        return;
-
-      boolean[] solution = new boolean[borderTiles.size()];
-      for(int i=0; i<borderTiles.size(); i++){
-        Pair<Integer,Integer> s = borderTiles.get(i);
-        int si = s.getFirst();
-        int sj = s.getSecond();
-        solution[i] = knownMine[si][sj];
-      }
-      tank_solutions.add(solution);
-      return;
-    }
-
-    Pair<Integer,Integer> q = borderTiles.get(k);
-    int qi = q.getFirst();
-    int qj = q.getSecond();
-
-    // Recurse two positions: mine and no mine
-    knownMine[qi][qj] = true;
-    tankRecurse(borderTiles, k+1);
-    knownMine[qi][qj] = false;
-
-    knownEmpty[qi][qj] = true;
-    tankRecurse(borderTiles, k+1);
-    knownEmpty[qi][qj] = false;
-
-  }
+  knownEmpty[qi][qj] = True
+  tankRecurse(borderTiles, k+1)
+  knownEmpty[qi][qj] = False
