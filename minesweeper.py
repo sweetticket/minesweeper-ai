@@ -158,6 +158,7 @@ def respond_to_move(currgrid, grid, flags, starttime, mines, result):
         rowno, colno = cell
         currcell = currgrid[rowno][colno]
         flag = result['flag']
+        print "move: " + str(cell)
 
         if not grid:
             grid, mines = setupgrid(gridsize, cell, numberofmines)
