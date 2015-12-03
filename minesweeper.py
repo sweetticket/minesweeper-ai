@@ -5,6 +5,7 @@ import time
 import ai
 from string import ascii_lowercase
 from game_constants import *
+import pdb
 
 helpmessage = ("Type the column followed by the row (eg. a5). "
                "To put or remove a flag, add 'f' to the cell (eg. a5f).")
@@ -232,7 +233,7 @@ def playgame(mode):
                 results = ai.firstMove(currgrid)
                 firstmove = False
             else:
-                results = ai.attemptFlagMine(currgrid, minesleft)
+                results = ai.attemptFlagMine(currgrid, minesleft, flags)
             if not results:
                 results = ai.attemptMove(currgrid, flags)
 

@@ -137,20 +137,21 @@ def isBoundary(grid, i, j):
 
 """ Attempt to deduce squares that we know have mines
     More specifically if number of squares around it = its number. """
-def attemptFlagMine(currgrid, minesleft):
+def attemptFlagMine(currgrid, minesleft, flags):
     if minesleft == 0:
         return False
     print "attempting to flag mine"
     for i in range(len(currgrid)):
         for j in range(len(currgrid)):
             if currgrid[i][j] != ' ' and currgrid[i][j] != 'F' and int(currgrid[i][j]) >= 1:
+                minesAround = countFlagsAround(currgrid, flags, i, j)
                 unopened = getUnopenedAround(currgrid, i, j)
-                if int(currgrid[i][j]) == len(unopened):
-                    print "currgrid[i][j] == len(unopened)"
-                    moves = []
-                    for tile in unopened:
-                        moves.append({'cell': tile, 'flag': True, 'message': ""})
-                    return moves
+                if int(currgrid[i][j]) != minesAround:
+                    if int(currgrid[i][j]) - minesAround >= len(unopened):
+                        moves = []
+                        for tile in unopened:
+                            moves.append({'cell': tile, 'flag': True, 'message': ""})
+                        return moves
     print "failed to flag mine"
     return False
 
@@ -165,13 +166,11 @@ def attemptMove(currgrid, flags):
                 curNum = int(currgrid[i][j])
                 minesAround = countFlagsAround(currgrid, flags, i, j)
                 unopenedAround = getUnopenedAround(currgrid, i, j)
-                if curNum == minesAround and len(unopenedAround) > minesAround:
-                    success = True
-                    if len(unopenedAround) - minesAround > 1:
-                        moves = []
-                        for cell in unopenedAround:
-                            moves.append({'cell': cell, 'flag': False, 'message': ""})
-                            return moves
+                if curNum == minesAround:
+                    moves = []
+                    for cell in unopenedAround:
+                        moves.append({'cell': cell, 'flag': False, 'message': ""})
+                        return moves
     # return guessRandomly(currgrid)
     print "starting tankSolver"
     return tankSolver(currgrid, flags)
