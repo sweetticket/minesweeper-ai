@@ -137,7 +137,9 @@ def isBoundary(grid, i, j):
 
 """ Attempt to deduce squares that we know have mines
     More specifically if number of squares around it = its number. """
-def attemptFlagMine(currgrid):
+def attemptFlagMine(currgrid, minesleft):
+    if minesleft == 0:
+        return False
     print "attempting to flag mine"
     for i in range(len(currgrid)):
         for j in range(len(currgrid)):

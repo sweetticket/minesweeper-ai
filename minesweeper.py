@@ -232,7 +232,7 @@ def playgame(mode):
                 results = ai.firstMove(currgrid)
                 firstmove = False
             else:
-                results = ai.attemptFlagMine(currgrid)
+                results = ai.attemptFlagMine(currgrid, minesleft)
             if not results:
                 results = ai.attemptMove(currgrid, flags)
 
