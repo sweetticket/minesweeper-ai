@@ -137,7 +137,7 @@ def tankSolver(currgrid, flags):
   cell = segregated.get(prob_best_s).get(prob_besttile)
   return [{'cell': cell, 'flag': False, 'message': ""}]
 
-""" Segregation routine: if two regions are independant then consider
+""" Segregation routine: if two regions are independent then consider
 them as separate regions. """
 def tankSegregate(borderTiles):
   allRegions = [] # array of arrays

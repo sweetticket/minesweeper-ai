@@ -10,6 +10,11 @@ def getrandomcell(grid):
     b = random.randint(0, gridsize - 1)
     return (a, b)
 
+def firstMove(currgrid):
+	gridsize = len(currgrid)
+	moves = [(0, 0), (0, gridsize-1), (gridsize-1, 0), (gridsize-1, gridsize-1)]
+	return [{'cell': random.choice(moves), 'flag': False, 'message': ""}]
+
 
 """ Counts the number of flags around a given position.
 	row i, col j """
@@ -146,3 +151,56 @@ def guessRandomly(currgrid):
 		(rowno, colno) = getrandomcell(currgrid)
 		if currgrid[rowno][colno] == ' ':
 			return [{'cell': (rowno, colno), 'flag': False, 'message': ""}]
+
+def getBorderTiles(currgrid, flags):
+	borderTiles = []
+	# Determine all border tiles
+	for i in range(len(currgrid)):
+    	for j in range(len(currgrid)):
+    		if isBoundary(currgrid, i, j) and (i, j) not in flags:
+        		borderTiles.append((i, j))
+ 	return borderTiles
+
+def tileSearch(currgrid, (ci, cj), (ti, tj)):
+  for i in range(len(currgrid)):
+    for j in range(len(currgrid)):
+      if isInstance(currgrid[i][j], int) and currgrid[i][j] > 0:
+        if math.abs(ci-i) <= 1 and math.abs(cj-j) <= 1 and math.abs(ti-i) <= 1 and math.abs(tj-j) <= 1:
+          return True
+  return False
+
+def tankSegregate(borderTiles):
+	allRegions = [] # array of arrays
+	covered = []
+
+	while True:
+		queue = Queue.Queue()
+		finishedRegion = []
+
+		# Find a suitable starting point
+		for firstT in borderTiles:
+			if firstT not in covered:
+				queue.put(firstT)
+				break
+		if queue.empty():
+			break
+
+		while not queue.empty():
+			(ci, cj) = queue.get()
+			finishedRegion.append((ci, cj))
+			covered.append((ci, cj))
+
+			# Find all connecting tiles
+			for (ti, tj) in borderTiles:
+				isConnected = False
+				if (ti, tj) not in finishedRegion:
+					isConnected = tilesearch(currgrid, (ci, cj), (ti, tj))
+					if isConnected and (ti, tj) not in queue:
+						queue.put((ti, tj))
+		allRegions.append(finishedRegion)
+
+	return allRegions
+
+def tankSolver(currgrid, flags):
+	pass
+

@@ -8,7 +8,7 @@ from string import ascii_lowercase
 HUMAN = 0
 AI = 1
 
-gridsize = 7
+gridsize = 9
 numberofmines = 10
 
 helpmessage = ("Type the column followed by the row (eg. a5). "
@@ -215,6 +215,8 @@ def playgame(mode):
 
     currgrid = [[' ' for i in range(gridsize)] for i in range(gridsize)]
 
+    firstmove = True
+
     grid = []
     flags = []
     mines = []
@@ -230,7 +232,11 @@ def playgame(mode):
             prompt = raw_input('Enter the cell ({} mines left): '.format(minesleft))
             results = [parseinput(prompt, gridsize, helpmessage + '\n')]
         else:
-            results = ai.attemptFlagMine(currgrid)
+            if firstmove:
+                results = ai.firstMove(currgrid)
+                firstmove = False
+            else:
+                results = ai.attemptFlagMine(currgrid)
             if not results:
                 results = ai.attemptMove(currgrid, flags)
 
