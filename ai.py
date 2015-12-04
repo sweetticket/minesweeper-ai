@@ -248,16 +248,16 @@ def getKnownEmptyTiles(currgrid):
           knownEmpty.append((i, j))
     return knownEmpty
 
-def tankRecurse(tank_solutions, currgrid, borderTiles, k, knownEmpty, knownMines, tank_board, borderOptimization):
+def tankRecurse(tank_solutions, borderTiles, k, knownEmpty, knownMines, tank_board, borderOptimization):
     flagCount = 0
     for i in range(len(tank_board)):
         for j in range(len(tank_board)):
             # Count flags for endgame cases
             if (i, j) in knownMines:
                 flagCount += 1
-            num = tank_board[i][j]
 
-            if currgrid[i][j] != ' ' and currgrid[i][j] != 'F' and int(currgrid[i][j]) >= 0:            
+            if tank_board[i][j] != ' ' and tank_board[i][j] != 'F' and int(tank_board[i][j]) >= 0:            
+                num = int(tank_board[i][j])
                 surround = 0 # number of surrounding tiles
                 if (i == 0 and j == 0) or (i == len(tank_board)-1 and j == len(tank_board)-1):
                     surround = 3
@@ -267,7 +267,7 @@ def tankRecurse(tank_solutions, currgrid, borderTiles, k, knownEmpty, knownMines
                     surround = 8
                 numFlags = countFlagsAround(tank_board, knownMines, i, j)
                 numFree = len(getUnopenedAround(tank_board, i, j))
-
+                # pdb.set_trace()
                 # Scenario 1: too many mines
                 if numFlags > num:
                     return (tank_solutions, knownMines, knownEmpty)
@@ -291,17 +291,19 @@ def tankRecurse(tank_solutions, currgrid, borderTiles, k, knownEmpty, knownMines
                 solution.append((si, sj))
         if len(solution) > 0:
             tank_solutions.append(solution)
+        # else:
+            # pdb.set_trace()
         return (tank_solutions, knownMines, knownEmpty)
 
     (qi, qj) = borderTiles[k]
 
     # Recurse two positions: mine and no mine
     knownMines.append((qi, qj))
-    (tank_solutions, knownMines, knownEmpty) = tankRecurse(tank_solutions, currgrid, borderTiles, k+1, knownEmpty, knownMines, tank_board, borderOptimization)
+    (tank_solutions, knownMines, knownEmpty) = tankRecurse(tank_solutions, borderTiles, k+1, knownEmpty, knownMines, tank_board, borderOptimization)
     knownMines.remove((qi, qj))
 
     knownEmpty.append((qi, qj))
-    (tank_solutions, knownMines, knownEmpty) = tankRecurse(tank_solutions, currgrid, borderTiles, k+1, knownEmpty, knownMines, tank_board, borderOptimization)
+    (tank_solutions, knownMines, knownEmpty) = tankRecurse(tank_solutions, borderTiles, k+1, knownEmpty, knownMines, tank_board, borderOptimization)
     knownEmpty.remove((qi, qj))
     return (tank_solutions, knownMines, knownEmpty)
 
@@ -341,7 +343,7 @@ def tankSolver(currgrid, flags):
         knownEmpty = getKnownEmptyTiles(tank_board)
         tank_solutions = []
 
-        (tank_solutions, knownMines, knownEmpty)  = tankRecurse(tank_solutions, currgrid, segregated[s], 0, knownEmpty, knownMines, tank_board, borderOptimization)
+        (tank_solutions, knownMines, knownEmpty)  = tankRecurse(tank_solutions, segregated[s], 0, knownEmpty, knownMines, tank_board, borderOptimization)
             
         # In case something went wrong
         if len(tank_solutions) == 0:
